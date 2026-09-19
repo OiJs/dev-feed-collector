@@ -1,5 +1,7 @@
 package com.oijs.devfeed.domain.post.dto;
 
+import com.oijs.devfeed.domain.post.entity.Category;
+import com.oijs.devfeed.domain.post.entity.Language;
 import com.oijs.devfeed.domain.post.entity.Post;
 import java.time.LocalDateTime;
 
@@ -9,8 +11,8 @@ public record PostResponse(
         String link,
         String source,
         String summary,
-        String language,
-        String category,
+        Language language,
+        Category category,
         LocalDateTime publishedAt
 ) {
     public static PostResponse from(Post post) {
