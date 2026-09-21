@@ -1,9 +1,5 @@
-package com.oijs.devfeed.controller;
+package com.oijs.devfeed.post;
 
-import com.oijs.devfeed.domain.post.dto.PostResponse;
-import com.oijs.devfeed.domain.post.entity.Category;
-import com.oijs.devfeed.domain.post.entity.Language;
-import com.oijs.devfeed.domain.post.service.PostService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

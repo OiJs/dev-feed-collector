@@ -1,4 +1,4 @@
-package com.oijs.devfeed.domain.post.entity;
+package com.oijs.devfeed.post;
 
 public enum Category {
     CS, AI, BACKEND, FRONTEND, DEVOPS, ARCHITECTURE, ETC

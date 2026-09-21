@@ -1,8 +1,5 @@
-package com.oijs.devfeed.domain.post.repository;
+package com.oijs.devfeed.post;
 
-import com.oijs.devfeed.domain.post.entity.Category;
-import com.oijs.devfeed.domain.post.entity.Language;
-import com.oijs.devfeed.domain.post.entity.Post;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

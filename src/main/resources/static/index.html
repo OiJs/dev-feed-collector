@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dev Feed</title>
+    <style>
+        :root {
+            --bg: #f7f7f8;
+            --card: #ffffff;
+            --border: #e5e5e8;
+            --text: #1a1a1e;
+            --text-muted: #71717a;
+            --accent: #3b5bfd;
+            --accent-bg: #eef1ff;
+            --radius: 12px;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #121214;
+                --card: #1c1c1f;
+                --border: #2c2c30;
+                --text: #f2f2f3;
+                --text-muted: #9a9aa2;
+                --accent: #7c93ff;
+                --accent-bg: #232849;
+            }
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 20px 80px;
+            line-height: 1.5;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0 0 28px;
+        }
+
+        .filter-group {
+            margin-bottom: 12px;
+        }
+        .filter-group .group-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .pill {
+            position: relative;
+        }
+        .pill input {
+            position: absolute;
+            opacity: 0;
+            inset: 0;
+            margin: 0;
+            cursor: pointer;
+        }
+        .pill span {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.12s ease;
+        }
+        .pill input:checked + span {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .pill:hover span { border-color: var(--accent); }
+
+        #posts { margin-top: 32px; }
+        .empty {
+            color: var(--text-muted);
+            padding: 40px 0;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .post {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            transition: border-color 0.12s ease;
+        }
+        .post:hover { border-color: var(--accent); }
+        .post a {
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--text);
+            display: block;
+        }
+        .post a:hover { color: var(--accent); }
+        .post .meta {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            background: var(--accent-bg);
+            color: var(--accent);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<h1>Dev Feed</h1>
+<div class="filter-group">
+    <span class="group-label">Language</span>
+    <div class="pills" id="language-filter"></div>
+</div>
+<div class="filter-group">
+    <span class="group-label">Category</span>
+    <div class="pills" id="category-filter"></div>
+</div>
+<div id="posts">불러오는 중...</div>
+
+<script>
+    async function loadMeta() {
+        const res = await fetch('/api/meta');
+        const meta = await res.json();
+        renderCheckboxes('language-filter', 'language', meta.languages);
+        renderCheckboxes('category-filter', 'category', meta.categories);
+    }
+
+    function renderCheckboxes(containerId, name, values) {
+        const container = document.getElementById(containerId);
+        values.forEach(v => {
+            const label = document.createElement('label');
+            label.className = 'pill';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = name;
+            checkbox.value = v;
+            checkbox.addEventListener('change', loadPosts);
+
+            const span = document.createElement('span');
+            span.textContent = v;
+
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            container.appendChild(label);
+        });
+    }
+
+    function getChecked(name) {
+        return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
+    }
+
+    async function loadPosts() {
+        const params = new URLSearchParams();
+        const languages = getChecked('language');
+        const categories = getChecked('category');
+        if (languages.length) params.set('language', languages.join(','));
+        if (categories.length) params.set('category', categories.join(','));
+
+        const res = await fetch('/api/posts?' + params.toString());
+        const posts = await res.json();
+        renderPosts(posts);
+    }
+
+    function renderPosts(posts) {
+        const container = document.getElementById('posts');
+        container.innerHTML = '';
+        if (posts.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty';
+            empty.textContent = '표시할 글이 없어요.';
+            container.appendChild(empty);
+            return;
+        }
+        posts.forEach(p => container.appendChild(buildPostElement(p)));
+    }
+
+    function buildPostElement(p) {
+        const div = document.createElement('div');
+        div.className = 'post';
+
+        const a = document.createElement('a');
+        a.href = /^https?:\/\//i.test(p.link) ? p.link : '#';
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = p.title;
+        div.appendChild(a);
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.append(`${p.source} · ${p.publishedAt ?? ''}`);
+        if (p.language) meta.appendChild(makeTag(p.language));
+        if (p.category) meta.appendChild(makeTag(p.category));
+        div.appendChild(meta);
+
+        return div;
+    }
+
+    function makeTag(text) {
+        const span = document.createElement('span');
+        span.className = 'tag';
+        span.textContent = text;
+        return span;
+    }
+
+    loadMeta().then(loadPosts);
+</script>
+</body>
+</html>
